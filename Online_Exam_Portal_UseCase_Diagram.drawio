@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-09-03T00:00:00.000Z" agent="Claude" version="24.0.0" type="device">
+  <diagram name="Use Case Diagram" id="uc-diagram-1">
+    <mxGraphModel dx="1400" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="Online Exam Portal - Use Case Diagram" style="text;html=1;fontSize=20;fontStyle=1;align=center;verticalAlign=middle;fontColor=#1F3864;" vertex="1" parent="1">
+          <mxGeometry x="360" y="10" width="450" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- System boundary -->
+        <mxCell id="boundary" value="Online Exam Portal" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontStyle=1;fontSize=14;fillColor=#F5F8FC;strokeColor=#1F3864;" vertex="1" parent="1">
+          <mxGeometry x="270" y="60" width="690" height="700" as="geometry" />
+        </mxCell>
+
+        <!-- Actors -->
+        <mxCell id="actor_student" value="Student" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#DCE6F1;strokeColor=#1F3864;" vertex="1" parent="1">
+          <mxGeometry x="60" y="330" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="actor_teacher" value="Teacher" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#DCE6F1;strokeColor=#1F3864;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="150" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="actor_admin" value="Administrator" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#DCE6F1;strokeColor=#1F3864;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="500" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Use cases -->
+        <mxCell id="uc_login" value="Login" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;" vertex="1" parent="1">
+          <mxGeometry x="310" y="100" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_view_schedule" value="View Exam Schedule" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;" vertex="1" parent="1">
+          <mxGeometry x="310" y="190" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_attend_exam" value="Attend Exam" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;" vertex="1" parent="1">
+          <mxGeometry x="320" y="290" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_autosave" value="Auto-Save Answers" style="ellipse;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
+          <mxGeometry x="560" y="230" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_autosubmit" value="Auto-Submit Exam" style="ellipse;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
+          <mxGeometry x="560" y="330" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_evaluate" value="Automatic Evaluation" style="ellipse;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
+          <mxGeometry x="560" y="420" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_view_results" value="View Results" style="ellipse;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;" vertex="1" parent="1">
+          <mxGeometry x="320" y="420" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_manage_qb" value="Manage Question Bank" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;" vertex="1" parent="1">
+          <mxGeometry x="740" y="130" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_manage_exam" value="Create / Manage Exam" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;" vertex="1" parent="1">
+          <mxGeometry x="740" y="290" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_reports" value="Generate Reports" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;" vertex="1" parent="1">
+          <mxGeometry x="740" y="460" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_manage_users" value="Manage User Access" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;" vertex="1" parent="1">
+          <mxGeometry x="740" y="560" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Student associations -->
+        <mxCell id="e1" style="edgeStyle=none;html=1;strokeColor=#1F3864;" edge="1" parent="1" source="actor_student" target="uc_login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=none;html=1;strokeColor=#1F3864;" edge="1" parent="1" source="actor_student" target="uc_view_schedule">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" style="edgeStyle=none;html=1;strokeColor=#1F3864;" edge="1" parent="1" source="actor_student" target="uc_attend_exam">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" style="edgeStyle=none;html=1;strokeColor=#1F3864;" edge="1" parent="1" source="actor_student" target="uc_view_results">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Teacher associations -->
+        <mxCell id="e5" style="edgeStyle=none;html=1;strokeColor=#1F3864;" edge="1" parent="1" source="actor_teacher" target="uc_login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" style="edgeStyle=none;html=1;strokeColor=#1F3864;" edge="1" parent="1" source="actor_teacher" target="uc_manage_qb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" style="edgeStyle=none;html=1;strokeColor=#1F3864;" edge="1" parent="1" source="actor_teacher" target="uc_manage_exam">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Administrator associations -->
+        <mxCell id="e8" style="edgeStyle=none;html=1;strokeColor=#1F3864;" edge="1" parent="1" source="actor_admin" target="uc_login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" style="edgeStyle=none;html=1;strokeColor=#1F3864;" edge="1" parent="1" source="actor_admin" target="uc_manage_exam">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" style="edgeStyle=none;html=1;strokeColor=#1F3864;" edge="1" parent="1" source="actor_admin" target="uc_reports">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" style="edgeStyle=none;html=1;strokeColor=#1F3864;" edge="1" parent="1" source="actor_admin" target="uc_manage_users">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Include relationships -->
+        <mxCell id="i1" value="&lt;&lt;include&gt;&gt;" style="edgeStyle=none;html=1;dashed=1;endArrow=open;strokeColor=#9673A6;fontColor=#9673A6;" edge="1" parent="1" source="uc_attend_exam" target="uc_autosave">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i2" value="&lt;&lt;include&gt;&gt;" style="edgeStyle=none;html=1;dashed=1;endArrow=open;strokeColor=#9673A6;fontColor=#9673A6;" edge="1" parent="1" source="uc_attend_exam" target="uc_autosubmit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i3" value="&lt;&lt;include&gt;&gt;" style="edgeStyle=none;html=1;dashed=1;endArrow=open;strokeColor=#9673A6;fontColor=#9673A6;" edge="1" parent="1" source="uc_autosubmit" target="uc_evaluate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i4" value="&lt;&lt;include&gt;&gt;" style="edgeStyle=none;html=1;dashed=1;endArrow=open;strokeColor=#9673A6;fontColor=#9673A6;" edge="1" parent="1" source="uc_evaluate" target="uc_view_results">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
