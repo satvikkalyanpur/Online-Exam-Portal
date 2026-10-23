@@ -9,7 +9,6 @@ export function getProjectStatus(_req: Request, res: Response) {
 }
 
 import prisma from "./prisma";
-import type { Request, Response } from "express";
 
 export const createExam = async (
   req: Request,
