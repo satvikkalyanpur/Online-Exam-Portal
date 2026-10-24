@@ -17,3 +17,5 @@
   },
   "include": ["src", "tsconfig.node.json"]
 }
+  "include": ["src"]
+}
