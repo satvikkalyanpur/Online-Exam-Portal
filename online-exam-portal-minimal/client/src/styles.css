@@ -1,4 +1,3 @@
-
 * {
   box-sizing: border-box;
 }
@@ -129,6 +128,83 @@ h1 {
   padding: 20px;
   background: #f0f7ff;
   border-radius: 10px;
+}
+
+
+.intro {
+  color: #526276;
+}
+
+.exam-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.exam-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 18px;
+  border: 1px solid #dce4ee;
+  border-radius: 10px;
+}
+
+.exam-card h3 {
+  margin: 8px 0 4px;
+}
+
+.exam-card p {
+  margin: 2px 0;
+  color: #526276;
+}
+
+.status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #e6f6ec;
+  color: #157347;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.instruction {
+  color: #526276;
+}
+
+.submission {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.submission p {
+  margin: 0 auto 0 0;
+  color: #526276;
+}
+
+.secondary {
+  padding: 12px 20px;
+  border: 1px solid #c3cfdd;
+  border-radius: 8px;
+  background: white;
+  color: #172333;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary:hover {
+  background: #f3f6fa;
+}
+
+.exam-header .eyebrow {
+  margin: 0 0 4px;
 }
 
 @media (max-width: 520px) {
