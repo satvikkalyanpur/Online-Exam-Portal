@@ -1,10 +1,142 @@
-* { box-sizing: border-box; }
-:root { font-family: system-ui, sans-serif; color: #172333; background: #f3f6fa; }
-body { margin: 0; min-width: 320px; }
-.page { max-width: 850px; margin: 0 auto; padding: 48px 20px; }
-header { margin-bottom: 28px; }
-.eyebrow { color: #60738a; font-size: 12px; font-weight: 700; letter-spacing: 1.4px; }
-h1 { margin-top: 8px; font-size: clamp(28px, 5vw, 40px); }
-.panel { padding: 26px; background: white; border: 1px solid #dce4ee; border-radius: 14px; }
-.panel p, li { color: #526276; line-height: 1.7; }
-li { margin: 5px 0; }
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: system-ui, sans-serif;
+  color: #172333;
+  background: #f3f6fa;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 20px;
+}
+
+header {
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  color: #60738a;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+h1 {
+  margin-top: 8px;
+  font-size: clamp(28px, 5vw, 40px);
+}
+
+.panel {
+  padding: 26px;
+  background: white;
+  border: 1px solid #dce4ee;
+  border-radius: 14px;
+}
+
+.exam-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.exam-header h2 {
+  margin-bottom: 6px;
+}
+
+.exam-header p {
+  color: #526276;
+}
+
+.timer {
+  display: grid;
+  gap: 4px;
+  min-width: 150px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  background: #e8f1ff;
+  color: #174a91;
+  text-align: center;
+}
+
+.timer span {
+  font-size: 12px;
+}
+
+.timer strong {
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-warning {
+  background: #fff0f0;
+  color: #b42318;
+}
+
+.question {
+  min-width: 0;
+  margin: 22px 0;
+  padding: 18px;
+  border: 1px solid #dce4ee;
+  border-radius: 10px;
+}
+
+.question legend {
+  padding: 0 6px;
+  font-weight: 650;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 6px;
+  cursor: pointer;
+}
+
+.option input {
+  accent-color: #2563eb;
+}
+
+.submit-button {
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 8px;
+  background: #1d4ed8;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submit-button:hover {
+  background: #1e40af;
+}
+
+.result {
+  padding: 20px;
+  background: #f0f7ff;
+  border-radius: 10px;
+}
+
+@media (max-width: 520px) {
+  .page {
+    padding: 24px 12px;
+  }
+
+  .panel {
+    padding: 18px;
+  }
+}
