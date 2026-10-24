@@ -139,4 +139,62 @@ h1 {
   .panel {
     padding: 18px;
   }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f9;
+  color: #202938;
+}
+
+.exam-page {
+  min-height: 100vh;
+  padding: 40px 16px;
+}
+
+.exam-card {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 28px;
+  background: white;
+  border: 1px solid #dce2ea;
+  border-radius: 12px;
+}
+
+.exam-card h1 {
+  margin-top: 0;
+}
+
+.exam-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exam-card label {
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.exam-card input {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #cbd3df;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.exam-card button {
+  margin-top: 14px;
+  padding: 12px;
+  border: 0;
+  border-radius: 6px;
+  background: #2457c5;
+  color: white;
+  font: inherit;
+  cursor: pointer;
+}
+
+.exam-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
