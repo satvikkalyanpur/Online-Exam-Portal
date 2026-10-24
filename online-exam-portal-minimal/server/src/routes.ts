@@ -1,7 +1,16 @@
+
 import { Router } from 'express';
-import { getProjectStatus } from './controllers.js';
+import {
+  getProjectStatus,
+  getExams,
+  getQuestions,
+  createQuestion,
+} from './controllers.js';
 
 export const router = Router();
 
-// Add feature routes here as GitHub issues are implemented.
 router.get('/project-status', getProjectStatus);
+
+router.get('/exams', getExams);
+router.get('/questions', getQuestions);
+router.post('/questions', createQuestion);
