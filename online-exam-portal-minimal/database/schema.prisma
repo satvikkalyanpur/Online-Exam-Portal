@@ -30,6 +30,7 @@ model User {
 }
 
 model Exam {
+  totalMarks Int
   id              String     @id @default(cuid())
   title           String
   description     String?
