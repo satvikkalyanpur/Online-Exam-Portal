@@ -14,3 +14,5 @@ router.get('/project-status', getProjectStatus);
 router.get('/exams', getExams);
 router.get('/questions', getQuestions);
 router.post('/questions', createQuestion);
+import { createExam } from "./controllers";
+router.post("/exams", createExam);
