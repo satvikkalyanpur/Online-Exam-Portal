@@ -14,10 +14,22 @@ body {
   min-width: 320px;
 }
 
+<<<<<<< Updated upstream
 .page {
   max-width: 900px;
   margin: 0 auto;
   padding: 36px 20px;
+=======
+button,
+input {
+  font: inherit;
+}
+
+.page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+>>>>>>> Stashed changes
 }
 
 header {
@@ -36,6 +48,19 @@ h1 {
   font-size: clamp(28px, 5vw, 40px);
 }
 
+<<<<<<< Updated upstream
+=======
+.intro,
+.panel > p,
+.exam-card p,
+.exam-heading p,
+.instruction,
+.submission p {
+  color: #526276;
+  line-height: 1.6;
+}
+
+>>>>>>> Stashed changes
 .panel {
   padding: 26px;
   background: white;
@@ -43,6 +68,7 @@ h1 {
   border-radius: 14px;
 }
 
+<<<<<<< Updated upstream
 .exam-header {
   display: flex;
   align-items: center;
@@ -83,6 +109,62 @@ h1 {
 .timer-warning {
   background: #fff0f0;
   color: #b42318;
+=======
+.exam-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.exam-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid #dce4ee;
+  border-radius: 12px;
+}
+
+.exam-card h3 {
+  margin: 12px 0 6px;
+}
+
+.exam-card p {
+  margin: 5px 0;
+}
+
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: #e7f7ed;
+  color: #187443;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+button {
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #1d4ed8;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1e40af;
+}
+
+.exam-heading {
+  margin-bottom: 20px;
+}
+
+.exam-heading h2 {
+  margin-bottom: 8px;
+>>>>>>> Stashed changes
 }
 
 .question {
@@ -110,6 +192,7 @@ h1 {
   accent-color: #2563eb;
 }
 
+<<<<<<< Updated upstream
 .submit-button {
   padding: 12px 20px;
   border: 0;
@@ -132,6 +215,36 @@ h1 {
 }
 
 @media (max-width: 520px) {
+=======
+.submission {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.submission p {
+  flex-basis: 100%;
+}
+
+.secondary {
+  background: #e8edf5;
+  color: #26374b;
+}
+
+.secondary:hover {
+  background: #d7e0ed;
+}
+
+.result {
+  padding: 24px;
+  background: #eff6ff;
+  border-radius: 10px;
+}
+
+@media (max-width: 600px) {
+>>>>>>> Stashed changes
   .page {
     padding: 24px 12px;
   }
@@ -139,4 +252,12 @@ h1 {
   .panel {
     padding: 18px;
   }
+<<<<<<< Updated upstream
+=======
+
+  .exam-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+>>>>>>> Stashed changes
 }
