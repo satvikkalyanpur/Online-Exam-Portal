@@ -225,3 +225,78 @@ export const createExam = async (
     });
   }
 };
+export async function updateQuestion(req: Request, res: Response) {
+  try {
+    const {
+      text,
+      optionA,
+      optionB,
+      optionC,
+      optionD,
+      correctOption,
+      marks,
+    } = req.body;
+
+    if (
+      typeof text !== 'string' ||
+      !text.trim() ||
+      text.trim().length > 10000
+    ) {
+      return res.status(400).json({ error: 'Valid question text is required.' });
+    }
+
+    const options = [optionA, optionB, optionC, optionD];
+
+    if (
+      options.some(
+        (option) =>
+          typeof option !== 'string' ||
+          !option.trim() ||
+          option.trim().length > 1000
+      )
+    ) {
+      return res.status(400).json({ error: 'All four options are required.' });
+    }
+
+    if (!['A', 'B', 'C', 'D'].includes(correctOption)) {
+      return res.status(400).json({ error: 'Correct option must be A, B, C, or D.' });
+    }
+
+    if (!Number.isInteger(marks) || marks < 1 || marks > 1000) {
+      return res.status(400).json({ error: 'Marks must be between 1 and 1000.' });
+    }
+
+    const existing = await prisma.question.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Question not found.' });
+    }
+
+    const question = await prisma.question.update({
+      where: { id: req.params.id },
+      data: {
+        text: text.trim(),
+        optionA: optionA.trim(),
+        optionB: optionB.trim(),
+        optionC: optionC.trim(),
+        optionD: optionD.trim(),
+        correctOption,
+        marks,
+      },
+      include: {
+        examLinks: {
+          include: {
+            exam: { select: { id: true, title: true } },
+          },
+        },
+      },
+    });
+
+    return res.json({ message: 'Question updated successfully.', question });
+  } catch (error) {
+    console.error('Failed to update question:', error);
+    return res.status(500).json({ error: 'Unable to update question.' });
+  }
+}
