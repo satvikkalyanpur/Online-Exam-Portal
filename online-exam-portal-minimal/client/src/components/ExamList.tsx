@@ -1,4 +1,5 @@
 import type { Exam } from '../types';
+import { hasSavedAttempt } from '../storage/attemptStorage';
 
 interface ExamListProps {
   exams: Exam[];
@@ -15,12 +16,14 @@ export default function ExamList({ exams, onStart }: ExamListProps) {
         {exams.map((exam) => {
           // An exam whose questions were all deleted can't be started.
           const hasQuestions = exam.questions.length > 0;
+          // An exam with auto-saved answers can be resumed.
+          const inProgress = hasQuestions && hasSavedAttempt(exam.id);
 
           return (
             <article className="exam-card" key={exam.id}>
               <div>
                 <span className={`status ${hasQuestions ? '' : 'status-unavailable'}`}>
-                  {hasQuestions ? 'Available' : 'Unavailable'}
+                  {!hasQuestions ? 'Unavailable' : inProgress ? 'In progress' : 'Available'}
                 </span>
                 <h3>{exam.title}</h3>
                 <p>{exam.subject}</p>
@@ -36,7 +39,7 @@ export default function ExamList({ exams, onStart }: ExamListProps) {
                 disabled={!hasQuestions}
                 onClick={() => onStart(exam)}
               >
-                Start examination
+                {inProgress ? 'Resume examination' : 'Start examination'}
               </button>
             </article>
           );

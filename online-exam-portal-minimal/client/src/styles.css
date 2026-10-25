@@ -378,6 +378,67 @@ h1 {
   margin-top: 20px;
 }
 
+/* ---------- Auto-save and question navigation (US10) ---------- */
+
+.palette {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0 4px;
+}
+
+.palette-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #c3cfdd;
+  border-radius: 8px;
+  background: white;
+  color: #172333;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.palette-btn:hover {
+  background: #f3f6fa;
+}
+
+.palette-answered {
+  border-color: #157347;
+  background: #e6f6ec;
+  color: #157347;
+}
+
+.palette-current {
+  outline: 3px solid #2563eb;
+  outline-offset: 1px;
+}
+
+.question-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+  color: #526276;
+}
+
+.secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.save-status {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #157347;
+}
+
+.save-error {
+  color: #b42318;
+}
+
 @media (max-width: 520px) {
   .page {
     padding: 24px 12px;

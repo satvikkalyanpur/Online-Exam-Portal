@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Answers, Exam } from '../types';
+import {
+  clearAttempt,
+  restoreAttempt,
+  saveAttempt,
+} from '../storage/attemptStorage';
 
 interface ExamAttemptProps {
   exam: Exam;
@@ -13,15 +18,44 @@ function formatTime(totalSeconds: number) {
 }
 
 export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
-  const totalSeconds = exam.duration * 60;
+  // Restore saved progress (answers, position, deadline) or start fresh.
+  const [initial] = useState(() => restoreAttempt(exam));
 
-  const [answers, setAnswers] = useState<Answers>({});
+  const [answers, setAnswers] = useState<Answers>(initial.answers);
+  const [currentIndex, setCurrentIndex] = useState(initial.currentIndex);
   const [submitted, setSubmitted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(totalSeconds);
+  const [timeLeft, setTimeLeft] = useState(() =>
+    Math.max(0, Math.ceil((initial.deadline - Date.now()) / 1000))
+  );
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   // Fixed deadline: the countdown stays accurate even if the browser
-  // throttles timers in a background tab.
-  const deadline = useRef(Date.now() + totalSeconds * 1000);
+  // throttles timers in a background tab, and survives a page refresh.
+  const deadline = useRef(initial.deadline);
+  // Set once the exam is finished so nothing is saved again afterwards.
+  const finished = useRef(false);
+
+  function finish() {
+    finished.current = true;
+    clearAttempt(exam.id);
+    setSubmitted(true);
+  }
+
+  // Auto-save: runs on start and every time an answer or the current
+  // question changes. (Declared before the timer effect on purpose, so an
+  // already-expired attempt is cleared after, not before, this save.)
+  useEffect(() => {
+    if (submitted || finished.current) return;
+
+    const ok = saveAttempt(exam.id, {
+      answers,
+      deadline: deadline.current,
+      currentIndex,
+    });
+    setSaveFailed(!ok);
+    if (ok) setLastSaved(new Date());
+  }, [answers, currentIndex, submitted, exam.id]);
 
   // Countdown timer – runs only while the exam is in progress.
   useEffect(() => {
@@ -36,20 +70,26 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
 
       // Automatically submit when the time limit is reached.
       if (remaining === 0) {
-        setSubmitted(true);
+        finish();
       }
     };
 
     tick();
     const timer = window.setInterval(tick, 500);
     return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submitted]);
 
   const answeredCount = Object.keys(answers).length;
   const total = exam.questions.length;
+  const question = exam.questions[currentIndex];
 
   function selectAnswer(questionId: number, option: string) {
     setAnswers((previous) => ({ ...previous, [questionId]: option }));
+  }
+
+  function goTo(index: number) {
+    setCurrentIndex(Math.min(Math.max(index, 0), total - 1));
   }
 
   function submitExam() {
@@ -64,11 +104,17 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
     }
     // Freeze the displayed time at the moment of submission.
     setTimeLeft(Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000)));
-    setSubmitted(true);
+    finish();
   }
 
   function cancelExam() {
-    if (window.confirm('Leave this examination? Your answers will be lost.')) {
+    if (
+      window.confirm(
+        'Leave this examination? Your saved answers will be discarded.'
+      )
+    ) {
+      finished.current = true;
+      clearAttempt(exam.id);
       onExit();
     }
   }
@@ -111,28 +157,81 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
         </div>
       ) : (
         <>
+          {initial.resumed && (
+            <div className="notice" role="status">
+              Your saved progress has been restored.
+            </div>
+          )}
+
           <p className="instruction">Choose one answer for each question.</p>
 
-          {exam.questions.map((question, index) => (
-            <fieldset className="question" key={question.id}>
-              <legend>
-                {index + 1}. {question.text}
-              </legend>
+          <div className="palette" role="group" aria-label="Question navigator">
+            {exam.questions.map((item, index) => {
+              const answered = answers[item.id] !== undefined;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`palette-btn ${answered ? 'palette-answered' : ''} ${index === currentIndex ? 'palette-current' : ''}`}
+                  aria-label={`Question ${index + 1}, ${answered ? 'answered' : 'not answered'}`}
+                  aria-current={index === currentIndex ? 'step' : undefined}
+                  onClick={() => goTo(index)}
+                >
+                  {index + 1}
+                </button>
+              );
+            })}
+          </div>
 
-              {question.options.map((option) => (
-                <label className="option" key={option}>
-                  <input
-                    type="radio"
-                    name={`question-${exam.id}-${question.id}`}
-                    value={option}
-                    checked={answers[question.id] === option}
-                    onChange={() => selectAnswer(question.id, option)}
-                  />
-                  {option}
-                </label>
-              ))}
-            </fieldset>
-          ))}
+          <fieldset className="question" key={question.id}>
+            <legend>
+              {currentIndex + 1}. {question.text}
+            </legend>
+
+            {question.options.map((option) => (
+              <label className="option" key={option}>
+                <input
+                  type="radio"
+                  name={`question-${exam.id}-${question.id}`}
+                  value={option}
+                  checked={answers[question.id] === option}
+                  onChange={() => selectAnswer(question.id, option)}
+                />
+                {option}
+              </label>
+            ))}
+          </fieldset>
+
+          <div className="question-nav">
+            <button
+              className="secondary"
+              onClick={() => goTo(currentIndex - 1)}
+              disabled={currentIndex === 0}
+            >
+              Previous
+            </button>
+            <span>
+              Question {currentIndex + 1} of {total}
+            </span>
+            <button
+              className="secondary"
+              onClick={() => goTo(currentIndex + 1)}
+              disabled={currentIndex === total - 1}
+            >
+              Next
+            </button>
+          </div>
+
+          <p
+            className={`save-status ${saveFailed ? 'save-error' : ''}`}
+            role="status"
+          >
+            {saveFailed
+              ? 'Could not save your answers on this device. Keep this page open.'
+              : lastSaved
+                ? `✓ Answers saved automatically (${lastSaved.toLocaleTimeString()})`
+                : 'Answers are saved automatically.'}
+          </p>
 
           <div className="submission">
             <p>
