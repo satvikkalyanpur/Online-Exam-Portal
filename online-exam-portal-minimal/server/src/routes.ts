@@ -16,3 +16,13 @@ router.get('/questions', getQuestions);
 router.post('/questions', createQuestion);
 import { createExam } from "./controllers";
 router.post("/exams", createExam);
+
+import {
+  getProjectStatus,
+  getExams,
+  getQuestions,
+  createQuestion,
+  updateQuestion,
+} from './controllers.js';
+
+
