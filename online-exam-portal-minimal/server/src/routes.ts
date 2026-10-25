@@ -5,24 +5,17 @@ import {
   getExams,
   getQuestions,
   createQuestion,
+  updateQuestion,
 } from './controllers.js';
 
 export const router = Router();
 
 router.get('/project-status', getProjectStatus);
+router.put('/questions/:id', updateQuestion);
 
 router.get('/exams', getExams);
 router.get('/questions', getQuestions);
 router.post('/questions', createQuestion);
 import { createExam } from "./controllers";
 router.post("/exams", createExam);
-
-import {
-  getProjectStatus,
-  getExams,
-  getQuestions,
-  createQuestion,
-  updateQuestion,
-} from './controllers.js';
-
 
