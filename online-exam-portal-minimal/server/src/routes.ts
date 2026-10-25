@@ -16,3 +16,5 @@ router.get('/questions', getQuestions);
 router.post('/questions', createQuestion);
 import { createExam } from "./controllers";
 router.post("/exams", createExam);
+import { login } from './auth.js';
+router.post('/auth/login', login);
