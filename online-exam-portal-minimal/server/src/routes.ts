@@ -1,11 +1,12 @@
-
 import { Router } from 'express';
 import {
   getProjectStatus,
   getExams,
   getQuestions,
   createQuestion,
+  createExam,
 } from './controllers.js';
+import { login } from './auth.js';
 
 export const router = Router();
 
@@ -14,7 +15,6 @@ router.get('/project-status', getProjectStatus);
 router.get('/exams', getExams);
 router.get('/questions', getQuestions);
 router.post('/questions', createQuestion);
-import { createExam } from "./controllers";
-router.post("/exams", createExam);
-import { login } from './auth.js';
+router.post('/exams', createExam);
+
 router.post('/auth/login', login);
