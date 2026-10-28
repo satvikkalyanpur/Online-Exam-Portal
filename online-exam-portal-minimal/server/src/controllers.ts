@@ -26,10 +26,23 @@ export async function getExams(_req: Request, res: Response) {
 export async function getQuestions(_req: Request, res: Response) {
   try {
     const questions = await prisma.question.findMany({
-      include: {
+      select: {
+        id: true,
+        text: true,
+        optionA: true,
+        optionB: true,
+        optionC: true,
+        optionD: true,
+        marks: true,
+        createdAt: true,
         examLinks: {
-          include: {
-            exam: { select: { id: true, title: true } },
+          select: {
+            exam: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
           },
         },
       },
@@ -39,10 +52,11 @@ export async function getQuestions(_req: Request, res: Response) {
     return res.json(questions);
   } catch (error) {
     console.error('Failed to fetch questions:', error);
-    return res.status(500).json({ error: 'Unable to fetch questions.' });
+    return res.status(500).json({
+      error: 'Unable to fetch questions.',
+    });
   }
 }
-
 export async function createQuestion(req: Request, res: Response) {
   try {
     const {
