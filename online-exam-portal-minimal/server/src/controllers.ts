@@ -307,3 +307,46 @@ export async function updateQuestion(req: Request, res: Response) {
   }
 }
 };
+export async function getStudentResults(
+  req: Request,
+  res: Response,
+) {
+  try {
+    const studentId = req.user?.id;
+
+    if (!studentId) {
+      return res.status(401).json({
+        error: 'Authentication required.',
+      });
+    }
+
+    const results = await prisma.result.findMany({
+      where: {
+        studentId,
+        evaluated: true,
+      },
+      orderBy: { evaluatedAt: 'desc' },
+      select: {
+        id: true,
+        examId: true,
+        score: true,
+        evaluated: true,
+        evaluatedAt: true,
+        exam: {
+          select: {
+            id: true,
+            title: true,
+            totalMarks: true,
+          },
+        },
+      },
+    });
+
+    return res.json(results);
+  } catch (error) {
+    console.error('Failed to fetch student results:', error);
+    return res.status(500).json({
+      error: 'Unable to fetch examination results.',
+    });
+  }
+}
