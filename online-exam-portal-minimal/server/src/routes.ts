@@ -32,3 +32,4 @@ import {
   createExam,
   getStudentResults,
 } from './controllers.js';
+router.get('/results/me', requireAuth, getStudentResults);
