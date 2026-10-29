@@ -23,3 +23,12 @@ router.get('/questions', requireAuth, getQuestions);
 router.post('/exams', requireAuth, requireAdmin, createExam);
 router.post('/questions', requireAuth, requireAdmin, createQuestion);
 router.put('/questions/:id', requireAuth, requireAdmin, updateQuestion);
+import {
+  getProjectStatus,
+  getExams,
+  getQuestions,
+  createQuestion,
+  updateQuestion,
+  createExam,
+  getStudentResults,
+} from './controllers.js';
