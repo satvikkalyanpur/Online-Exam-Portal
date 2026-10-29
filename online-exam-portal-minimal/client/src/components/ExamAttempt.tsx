@@ -24,6 +24,7 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
   const [answers, setAnswers] = useState<Answers>(initial.answers);
   const [currentIndex, setCurrentIndex] = useState(initial.currentIndex);
   const [submitted, setSubmitted] = useState(false);
+  const [reviewing, setReviewing] = useState(false);
   const [timeLeft, setTimeLeft] = useState(() =>
     Math.max(0, Math.ceil((initial.deadline - Date.now()) / 1000))
   );
@@ -82,6 +83,7 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
 
   const answeredCount = Object.keys(answers).length;
   const total = exam.questions.length;
+  const unansweredCount = total - answeredCount;
   const question = exam.questions[currentIndex];
 
   function selectAnswer(questionId: number, option: string) {
@@ -92,16 +94,15 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
     setCurrentIndex(Math.min(Math.max(index, 0), total - 1));
   }
 
+  // Jump to a question from the review screen and go back to answering.
+  function goToFromReview(index: number) {
+    goTo(index);
+    setReviewing(false);
+  }
+
+  // Called from the review screen, which has already shown any unanswered
+  // questions, so no second confirmation is needed here.
   function submitExam() {
-    const unanswered = total - answeredCount;
-    if (
-      unanswered > 0 &&
-      !window.confirm(
-        `You have ${unanswered} unanswered question${unanswered > 1 ? 's' : ''}. Submit anyway?`
-      )
-    ) {
-      return;
-    }
     // Freeze the displayed time at the moment of submission.
     setTimeLeft(Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000)));
     finish();
@@ -154,6 +155,47 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
           <button className="submit-button" onClick={onExit}>
             Back to examinations
           </button>
+        </div>
+      ) : reviewing ? (
+        <div className="review" aria-label="Review answers">
+          <h3>Review your answers</h3>
+          <p>
+            Answered {answeredCount} of {total} questions
+          </p>
+
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {exam.questions.map((item, index) => {
+              const answered = answers[item.id] !== undefined;
+              return (
+                <li key={item.id} style={{ marginBottom: 8 }}>
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() => goToFromReview(index)}
+                  >
+                    Question {index + 1}
+                  </button>{' '}
+                  {answered ? 'Answered' : 'Not answered'}
+                </li>
+              );
+            })}
+          </ul>
+
+          {unansweredCount > 0 && (
+            <p role="alert">
+              You have {unansweredCount} unanswered question
+              {unansweredCount > 1 ? 's' : ''}.
+            </p>
+          )}
+
+          <div className="submission">
+            <button className="submit-button" onClick={submitExam}>
+              Confirm and submit
+            </button>
+            <button className="secondary" onClick={() => setReviewing(false)}>
+              Back to questions
+            </button>
+          </div>
         </div>
       ) : (
         <>
@@ -238,8 +280,8 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
               Answered {answeredCount} of {total} questions
             </p>
 
-            <button className="submit-button" onClick={submitExam}>
-              Submit examination
+            <button className="submit-button" onClick={() => setReviewing(true)}>
+              Review and submit
             </button>
 
             <button className="secondary" onClick={cancelExam}>
