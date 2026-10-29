@@ -80,17 +80,3 @@ export default function App() {
     </main>
   );
 }
-      await fetch(`/api/questions/${question.id}`, {
-  method: 'PUT',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    text,
-    optionA,
-    optionB,
-    optionC,
-    optionD,
-    correctOption,
-    marks: Number(marks),
-  }),
-});
-}
