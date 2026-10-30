@@ -350,3 +350,56 @@ export async function getStudentResults(
     });
   }
 }
+
+export async function getPerformanceReports(
+  _req: Request,
+  res: Response
+) {
+  try {
+    const results = await prisma.examResult.findMany({
+      include: {
+        student: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        exam: {
+          select: {
+            id: true,
+            title: true,
+            totalMarks: true,
+          },
+        },
+      },
+      orderBy: {
+        submittedAt: 'desc',
+      },
+    });
+
+    const reports = results.map((result) => ({
+      id: result.id,
+      student: result.student,
+      exam: result.exam,
+      score: result.score,
+      totalMarks: result.totalMarks,
+      percentage:
+        result.totalMarks > 0
+          ? Number(
+              ((result.score / result.totalMarks) * 100).toFixed(2)
+            )
+          : 0,
+      submittedAt: result.submittedAt,
+    }));
+
+    return res.json(reports);
+  } catch {
+    return res.status(500).json({
+      message: 'Unable to generate performance reports',
+    });
+  }
+}
+
+import { getPerformanceReports } from './controllers.js';
+router.get('/admin/reports/performance', getPerformanceReports);
