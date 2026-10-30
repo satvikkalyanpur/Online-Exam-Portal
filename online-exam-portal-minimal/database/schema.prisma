@@ -28,6 +28,7 @@ model User {
   passwordHash String
   role         Role     @default(STUDENT)
   createdAt    DateTime @default(now())
+  results ExamResult[]
 }
 
 
@@ -56,6 +57,7 @@ model Question {
   marks         Int            @default(1)
   createdAt     DateTime       @default(now())
   examLinks     ExamQuestion[]
+  results ExamResult[]
 }
 
 model ExamQuestion {
@@ -66,4 +68,19 @@ model ExamQuestion {
   exam     Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
 
   @@id([questionId, examId])
+}
+
+model ExamResult {
+  id          String   @id @default(cuid())
+  studentId   String
+  examId      String
+  score       Int
+  totalMarks  Int
+  submittedAt DateTime @default(now())
+
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  exam    Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([examId])
 }
