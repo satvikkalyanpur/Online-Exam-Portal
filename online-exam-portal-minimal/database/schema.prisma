@@ -29,6 +29,7 @@ model User {
   role         Role     @default(STUDENT)
   createdAt    DateTime @default(now())
   results ExamResult[]
+    submissions Submission[]
 }
 
 
@@ -42,8 +43,8 @@ model Exam {
   endAt           DateTime
   durationMinutes Int
   createdAt       DateTime   @default(now())
-
-  questions       ExamQuestion[]
+  questions ExamQuestion[]
+  results   ExamResult[]
 }
 
 model Question {
@@ -57,7 +58,7 @@ model Question {
   marks         Int            @default(1)
   createdAt     DateTime       @default(now())
   examLinks     ExamQuestion[]
-  results ExamResult[]
+ 
 }
 
 model ExamQuestion {
@@ -83,4 +84,20 @@ model ExamResult {
 
   @@index([studentId])
   @@index([examId])
+}
+model Submission {
+  id            String   @id @default(cuid())
+  studentId     String
+  examRef       Int
+  examTitle     String
+  answers       Json
+  score         Int
+  totalMarks    Int
+  autoSubmitted Boolean  @default(false)
+  submittedAt   DateTime @default(now())
+
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([examRef])
 }
