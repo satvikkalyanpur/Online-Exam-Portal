@@ -439,12 +439,139 @@ h1 {
   color: #b42318;
 }
 
+/* ---------- Responsive layout (US22) ---------- */
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+/* Clear keyboard focus on every control. */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Touch screens: every control is at least 44px, the minimum for a thumb. */
+@media (pointer: coarse) {
+  .tab,
+  .submit-button,
+  .secondary,
+  .danger,
+  .danger-solid {
+    min-height: 44px;
+  }
+
+  .palette-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .option {
+    min-height: 48px;
+  }
+
+  .option input {
+    width: 20px;
+    height: 20px;
+    flex: none;
+  }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .page {
+    padding: 28px 16px;
+  }
+
+  .panel {
+    padding: 22px;
+  }
+
+  .exam-card,
+  .bank-item {
+    padding: 16px;
+  }
+}
+
+/* Phones */
 @media (max-width: 520px) {
   .page {
     padding: 24px 12px;
   }
 
+  header {
+    margin-bottom: 20px;
+  }
+
   .panel {
-    padding: 18px;
+    padding: 16px;
+  }
+
+  .tabs .tab {
+    flex: 1 1 140px;
+  }
+
+  /* The timer sits under the title and fills the width. */
+  .exam-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .timer {
+    min-width: 0;
+  }
+
+  .question {
+    padding: 14px 12px;
+  }
+
+  /* Previous / Next share one row; the position text goes above them. */
+  .question-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .question-nav span {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    text-align: center;
+  }
+
+  /* Main actions are full-width buttons. */
+  .submission {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .submission p {
+    margin: 0;
+  }
+
+  .submission button,
+  .exam-card .submit-button,
+  .bank-item .danger,
+  .result button {
+    width: 100%;
+  }
+
+  .exam-card {
+    align-items: stretch;
+  }
+
+  .dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .dialog-actions button {
+    width: 100%;
   }
 }
