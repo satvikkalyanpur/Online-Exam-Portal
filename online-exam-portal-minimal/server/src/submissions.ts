@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import prisma from './prisma.js';
+import { logActivity } from './activityLog.js';
 
 type AuthedRequest = Request & { user?: { id: string; role: string } };
 
@@ -38,6 +39,15 @@ export async function createSubmission(req: Request, res: Response) {
         totalMarks,
         autoSubmitted: autoSubmitted === true,
       },
+    });
+
+    await logActivity(user.id, 'EXAM_SUBMIT', {
+      submissionId: submission.id,
+      examRef,
+      examTitle: submission.examTitle,
+      score,
+      totalMarks,
+      autoSubmitted: autoSubmitted === true,
     });
 
     return res.status(201).json({

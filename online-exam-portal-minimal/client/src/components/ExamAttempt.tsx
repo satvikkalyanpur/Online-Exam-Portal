@@ -5,7 +5,7 @@ import {
   restoreAttempt,
   saveAttempt,
 } from '../storage/attemptStorage';
-import { submitAttempt } from '../api/submissions';
+import { logExamStart, submitAttempt } from '../api/submissions';
 
 interface ExamAttemptProps {
   exam: Exam;
@@ -64,6 +64,12 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
     setSubmitted(true);
     void storeSubmission();
   }
+
+  // Log the start of a fresh attempt (not a resume after a refresh).
+  useEffect(() => {
+    if (!initial.resumed) void logExamStart(exam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Keep the ref in step with the answers (declared before the timer effect).
   useEffect(() => {

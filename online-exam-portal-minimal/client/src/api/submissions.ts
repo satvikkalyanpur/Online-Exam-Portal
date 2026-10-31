@@ -41,3 +41,22 @@ export async function submitAttempt(
     return false;
   }
 }
+
+/** Tell the server an exam attempt has started, for the activity log. */
+export async function logExamStart(exam: Exam): Promise<void> {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    await fetch(`${API_URL}/api/activity/exam-start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ examRef: exam.id, examTitle: exam.title }),
+    });
+  } catch {
+    // Logging must never get in the way of taking the exam.
+  }
+}

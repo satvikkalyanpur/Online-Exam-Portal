@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from './prisma.js';
+import { logActivity } from './activityLog.js';
 
 export async function login(req: Request, res: Response) {
   try {
@@ -24,6 +25,7 @@ export async function login(req: Request, res: Response) {
     }
 
     const token = jwt.sign({ sub: user.id, role: user.role }, secret, { expiresIn: '1h' });
+    await logActivity(user.id, 'LOGIN', { email: user.email, role: user.role });
     return res.json({
       token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role },

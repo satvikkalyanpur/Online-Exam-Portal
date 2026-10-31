@@ -30,6 +30,7 @@ model User {
   createdAt    DateTime @default(now())
   results ExamResult[]
     submissions Submission[]
+  activityLogs ActivityLog[]
 }
 
 
@@ -100,4 +101,24 @@ model Submission {
 
   @@index([studentId])
   @@index([examRef])
+}
+
+enum ActivityAction {
+  LOGIN
+  EXAM_START
+  EXAM_SUBMIT
+}
+
+model ActivityLog {
+  id        String         @id @default(cuid())
+  userId    String?
+  action    ActivityAction
+  details   Json?
+  createdAt DateTime       @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
 }
