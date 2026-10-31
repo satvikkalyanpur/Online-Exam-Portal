@@ -5,11 +5,14 @@ import {
   restoreAttempt,
   saveAttempt,
 } from '../storage/attemptStorage';
+import { submitAttempt } from '../api/submissions';
 
 interface ExamAttemptProps {
   exam: Exam;
   onExit: () => void;
 }
+
+type StoreStatus = 'idle' | 'saving' | 'saved' | 'failed';
 
 function formatTime(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60);
@@ -25,6 +28,7 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
   const [currentIndex, setCurrentIndex] = useState(initial.currentIndex);
   const [submitted, setSubmitted] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const [storeStatus, setStoreStatus] = useState<StoreStatus>('idle');
   const [timeLeft, setTimeLeft] = useState(() =>
     Math.max(0, Math.ceil((initial.deadline - Date.now()) / 1000))
   );
@@ -34,14 +38,37 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
   // Fixed deadline: the countdown stays accurate even if the browser
   // throttles timers in a background tab, and survives a page refresh.
   const deadline = useRef(initial.deadline);
-  // Set once the exam is finished so nothing is saved again afterwards.
+  // Set once the exam is finished so nothing is saved or submitted again.
   const finished = useRef(false);
+  // The timer is set up once, so it reads the latest answers from here.
+  const answersRef = useRef<Answers>(initial.answers);
+  // Whether the exam was submitted by the timer rather than the student.
+  const autoSubmitted = useRef(false);
 
-  function finish() {
+  async function storeSubmission() {
+    setStoreStatus('saving');
+    const ok = await submitAttempt(
+      exam,
+      answersRef.current,
+      autoSubmitted.current
+    );
+    setStoreStatus(ok ? 'saved' : 'failed');
+  }
+
+  function finish(auto: boolean) {
+    // A manual and an automatic submit must never both go through.
+    if (finished.current) return;
     finished.current = true;
+    autoSubmitted.current = auto;
     clearAttempt(exam.id);
     setSubmitted(true);
+    void storeSubmission();
   }
+
+  // Keep the ref in step with the answers (declared before the timer effect).
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
 
   // Auto-save: runs on start and every time an answer or the current
   // question changes. (Declared before the timer effect on purpose, so an
@@ -71,7 +98,7 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
 
       // Automatically submit when the time limit is reached.
       if (remaining === 0) {
-        finish();
+        finish(true);
       }
     };
 
@@ -105,7 +132,7 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
   function submitExam() {
     // Freeze the displayed time at the moment of submission.
     setTimeLeft(Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000)));
-    finish();
+    finish(false);
   }
 
   function cancelExam() {
@@ -149,9 +176,20 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
           </p>
           <p>
             {timeLeft === 0
-              ? 'Time is up. Your examination has been submitted.'
-              : 'Your responses have been submitted in this session.'}
+              ? 'Time is up. Your examination has been submitted automatically.'
+              : 'Your responses have been submitted.'}
           </p>
+          <p>
+            {storeStatus === 'saving' && 'Saving your submission...'}
+            {storeStatus === 'saved' && 'Your submission has been stored.'}
+            {storeStatus === 'failed' &&
+              'Your submission could not be stored on the server. Check that you are logged in and the server is running.'}
+          </p>
+          {storeStatus === 'failed' && (
+            <button className="secondary" onClick={() => void storeSubmission()}>
+              Retry
+            </button>
+          )}
           <button className="submit-button" onClick={onExit}>
             Back to examinations
           </button>

@@ -401,8 +401,6 @@ export async function getPerformanceReports(
   }
 }
 
-import { getPerformanceReports } from './controllers.js';
-router.get('/admin/reports/performance', getPerformanceReports);
 
 export async function getExaminationStatistics(
   _req: Request,
@@ -478,3 +476,16 @@ export async function getExaminationStatistics(
     });
   }
 }
+router.get(
+  '/admin/reports/performance',
+  requireAuth,
+  requireAdmin,
+  getPerformanceReports,
+);
+router.post('/submissions', requireAuth, createSubmission);
+router.get(
+  '/admin/reports/performance',
+  requireAuth,
+  requireAdmin,
+  getPerformanceReports,
+);
