@@ -403,3 +403,78 @@ export async function getPerformanceReports(
 
 import { getPerformanceReports } from './controllers.js';
 router.get('/admin/reports/performance', getPerformanceReports);
+
+export async function getExaminationStatistics(
+  _req: Request,
+  res: Response,
+) {
+  try {
+    const results = await prisma.examResult.findMany({
+      include: {
+        exam: {
+          select: {
+            id: true,
+            title: true,
+            totalMarks: true,
+          },
+        },
+      },
+    });
+
+    const statistics = new Map<
+      string,
+      {
+        exam: { id: string; title: string; totalMarks: number };
+        totalAttempts: number;
+        totalScore: number;
+        highestScore: number;
+        lowestScore: number;
+      }
+    >();
+
+    for (const result of results) {
+      const current = statistics.get(result.exam.id) ?? {
+        exam: result.exam,
+        totalAttempts: 0,
+        totalScore: 0,
+        highestScore: result.score,
+        lowestScore: result.score,
+      };
+
+      current.totalAttempts += 1;
+      current.totalScore += result.score;
+      current.highestScore = Math.max(current.highestScore, result.score);
+      current.lowestScore = Math.min(current.lowestScore, result.score);
+
+      statistics.set(result.exam.id, current);
+    }
+
+    const reports = Array.from(statistics.values()).map((item) => ({
+      ...item,
+      averageScore: Number(
+        (item.totalScore / item.totalAttempts).toFixed(2),
+      ),
+      averagePercentage:
+        item.exam.totalMarks > 0
+          ? Number(
+              (
+                (item.totalScore / item.totalAttempts /
+                  item.exam.totalMarks) *
+                100
+              ).toFixed(2),
+            )
+          : 0,
+    }));
+
+    return res.json({
+      totalExams: reports.length,
+      totalAttempts: results.length,
+      examinations: reports,
+    });
+  } catch (error) {
+    console.error('Failed to generate examination statistics:', error);
+    return res.status(500).json({
+      error: 'Unable to generate examination statistics.',
+    });
+  }
+}
