@@ -9,7 +9,9 @@ import {
   createExam,
   getStudentResults,
   getExaminationStatistics,
+  getPerformanceReports,
 } from './controllers.js';
+import { getActivityLogs, recordExamStart } from './activityLog.js';
 import { login } from './auth.js';
 import { requireAuth, requireAdmin } from './security.js';
 
@@ -35,3 +37,17 @@ router.get(
   requireAdmin,
   getExaminationStatistics,
 );
+
+// Students submit their finished exam and report that they started one.
+router.post('/submissions', requireAuth, createSubmission);
+router.post('/activity/exam-start', requireAuth, recordExamStart);
+
+router.get(
+  '/admin/reports/performance',
+  requireAuth,
+  requireAdmin,
+  getPerformanceReports,
+);
+
+// Only administrators can view the activity logs.
+router.get('/admin/activity-logs', requireAuth, requireAdmin, getActivityLogs);

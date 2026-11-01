@@ -306,7 +306,6 @@ export async function updateQuestion(req: Request, res: Response) {
     return res.status(500).json({ error: 'Unable to update question.' });
   }
 }
-};
 export async function getStudentResults(
   req: Request,
   res: Response,
@@ -476,16 +475,3 @@ export async function getExaminationStatistics(
     });
   }
 }
-router.get(
-  '/admin/reports/performance',
-  requireAuth,
-  requireAdmin,
-  getPerformanceReports,
-);
-router.post('/submissions', requireAuth, createSubmission);
-router.get(
-  '/admin/reports/performance',
-  requireAuth,
-  requireAdmin,
-  getPerformanceReports,
-);

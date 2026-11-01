@@ -5,7 +5,7 @@ import {
   restoreAttempt,
   saveAttempt,
 } from '../storage/attemptStorage';
-import { submitAttempt } from '../api/submissions';
+import { logExamStart, submitAttempt } from '../api/submissions';
 
 interface ExamAttemptProps {
   exam: Exam;
@@ -34,6 +34,7 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
   );
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveFailed, setSaveFailed] = useState(false);
+  const [online, setOnline] = useState(() => navigator.onLine);
 
   // Fixed deadline: the countdown stays accurate even if the browser
   // throttles timers in a background tab, and survives a page refresh.
@@ -44,16 +45,49 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
   const answersRef = useRef<Answers>(initial.answers);
   // Whether the exam was submitted by the timer rather than the student.
   const autoSubmitted = useRef(false);
+  // Same id on every re-send, so the server stores the submission only once.
+  const attemptId = useRef(initial.attemptId);
+  const storing = useRef(false);
 
   async function storeSubmission() {
+    if (storing.current) return;
+    storing.current = true;
     setStoreStatus('saving');
     const ok = await submitAttempt(
       exam,
       answersRef.current,
-      autoSubmitted.current
+      autoSubmitted.current,
+      attemptId.current
     );
+    storing.current = false;
     setStoreStatus(ok ? 'saved' : 'failed');
   }
+
+  // Show when the connection drops and comes back.
+  useEffect(() => {
+    const goOnline = () => setOnline(true);
+    const goOffline = () => setOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, []);
+
+  // A submission that could not be stored is tried again by itself: when the
+  // connection returns and every 10 seconds, until the server has it.
+  useEffect(() => {
+    if (storeStatus !== 'failed') return;
+    const retry = () => void storeSubmission();
+    window.addEventListener('online', retry);
+    const timer = window.setInterval(retry, 10000);
+    return () => {
+      window.removeEventListener('online', retry);
+      window.clearInterval(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeStatus]);
 
   function finish(auto: boolean) {
     // A manual and an automatic submit must never both go through.
@@ -64,6 +98,12 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
     setSubmitted(true);
     void storeSubmission();
   }
+
+  // Log the start of a fresh attempt (not a resume after a refresh).
+  useEffect(() => {
+    if (!initial.resumed) void logExamStart(exam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Keep the ref in step with the answers (declared before the timer effect).
   useEffect(() => {
@@ -80,6 +120,7 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
       answers,
       deadline: deadline.current,
       currentIndex,
+      attemptId: attemptId.current,
     });
     setSaveFailed(!ok);
     if (ok) setLastSaved(new Date());
@@ -183,7 +224,7 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
             {storeStatus === 'saving' && 'Saving your submission...'}
             {storeStatus === 'saved' && 'Your submission has been stored.'}
             {storeStatus === 'failed' &&
-              'Your submission could not be stored on the server. Check that you are logged in and the server is running.'}
+              'Your answers are saved on this device but could not reach the server. We will keep trying automatically; you can also retry now.'}
           </p>
           {storeStatus === 'failed' && (
             <button className="secondary" onClick={() => void storeSubmission()}>
@@ -237,6 +278,13 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
         </div>
       ) : (
         <>
+          {!online && (
+            <div className="notice notice-offline" role="alert">
+              You are offline. Your answers are saved on this device and will
+              be sent when the connection returns.
+            </div>
+          )}
+
           {initial.resumed && (
             <div className="notice" role="status">
               Your saved progress has been restored.
