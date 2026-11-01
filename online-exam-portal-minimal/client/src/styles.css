@@ -256,6 +256,11 @@ h1 {
   overflow-wrap: anywhere;
 }
 
+.notice-offline {
+  background: #fff4e0;
+  color: #8a5a00;
+}
+
 .empty {
   margin-top: 20px;
   padding: 28px;

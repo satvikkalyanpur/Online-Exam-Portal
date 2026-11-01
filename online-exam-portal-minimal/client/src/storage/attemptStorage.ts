@@ -1,4 +1,5 @@
 import type { Answers, Exam } from '../types';
+import { newAttemptId } from '../api/submissions';
 
 /** Everything needed to resume an exam attempt after a refresh or tab close. */
 export interface SavedAttempt {
@@ -6,6 +7,8 @@ export interface SavedAttempt {
   /** Exam end time (ms since epoch), so the timer keeps running while away */
   deadline: number;
   currentIndex: number;
+  /** Identifies this attempt, so a re-sent submission is stored only once */
+  attemptId: string;
 }
 
 const PREFIX = 'exam-portal:attempt:v1:';
@@ -30,7 +33,10 @@ export function loadAttempt(examId: number): SavedAttempt | null {
     const data: unknown = JSON.parse(raw);
     if (typeof data !== 'object' || data === null) return null;
 
-    const { answers, deadline, currentIndex } = data as Record<string, unknown>;
+    const { answers, deadline, currentIndex, attemptId } = data as Record<
+      string,
+      unknown
+    >;
 
     if (typeof deadline !== 'number' || !Number.isFinite(deadline)) return null;
     if (typeof answers !== 'object' || answers === null || Array.isArray(answers)) {
@@ -47,6 +53,8 @@ export function loadAttempt(examId: number): SavedAttempt | null {
 
     return {
       answers: cleanAnswers,
+      attemptId:
+        typeof attemptId === 'string' && attemptId ? attemptId : newAttemptId(),
       deadline,
       currentIndex:
         typeof currentIndex === 'number' && Number.isInteger(currentIndex)
@@ -87,7 +95,13 @@ export function restoreAttempt(exam: Exam): RestoredAttempt {
   const saved = loadAttempt(exam.id);
 
   if (!saved) {
-    return { answers: {}, deadline: now + totalMs, currentIndex: 0, resumed: false };
+    return {
+      answers: {},
+      attemptId: newAttemptId(),
+      deadline: now + totalMs,
+      currentIndex: 0,
+      resumed: false,
+    };
   }
 
   const answers: Answers = {};
@@ -102,6 +116,7 @@ export function restoreAttempt(exam: Exam): RestoredAttempt {
 
   return {
     answers,
+    attemptId: saved.attemptId,
     // Never allow more time than the exam's limit, even if the clock changed.
     deadline: Math.min(saved.deadline, now + totalMs),
     currentIndex: Math.min(Math.max(saved.currentIndex, 0), lastIndex),
