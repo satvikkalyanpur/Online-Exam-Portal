@@ -5,11 +5,14 @@ import {
   restoreAttempt,
   saveAttempt,
 } from '../storage/attemptStorage';
+import { logExamStart, submitAttempt } from '../api/submissions';
 
 interface ExamAttemptProps {
   exam: Exam;
   onExit: () => void;
 }
+
+type StoreStatus = 'idle' | 'saving' | 'saved' | 'failed';
 
 function formatTime(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60);
@@ -24,23 +27,88 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
   const [answers, setAnswers] = useState<Answers>(initial.answers);
   const [currentIndex, setCurrentIndex] = useState(initial.currentIndex);
   const [submitted, setSubmitted] = useState(false);
+  const [reviewing, setReviewing] = useState(false);
+  const [storeStatus, setStoreStatus] = useState<StoreStatus>('idle');
   const [timeLeft, setTimeLeft] = useState(() =>
     Math.max(0, Math.ceil((initial.deadline - Date.now()) / 1000))
   );
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveFailed, setSaveFailed] = useState(false);
+  const [online, setOnline] = useState(() => navigator.onLine);
 
   // Fixed deadline: the countdown stays accurate even if the browser
   // throttles timers in a background tab, and survives a page refresh.
   const deadline = useRef(initial.deadline);
-  // Set once the exam is finished so nothing is saved again afterwards.
+  // Set once the exam is finished so nothing is saved or submitted again.
   const finished = useRef(false);
+  // The timer is set up once, so it reads the latest answers from here.
+  const answersRef = useRef<Answers>(initial.answers);
+  // Whether the exam was submitted by the timer rather than the student.
+  const autoSubmitted = useRef(false);
+  // Same id on every re-send, so the server stores the submission only once.
+  const attemptId = useRef(initial.attemptId);
+  const storing = useRef(false);
 
-  function finish() {
+  async function storeSubmission() {
+    if (storing.current) return;
+    storing.current = true;
+    setStoreStatus('saving');
+    const ok = await submitAttempt(
+      exam,
+      answersRef.current,
+      autoSubmitted.current,
+      attemptId.current
+    );
+    storing.current = false;
+    setStoreStatus(ok ? 'saved' : 'failed');
+  }
+
+  // Show when the connection drops and comes back.
+  useEffect(() => {
+    const goOnline = () => setOnline(true);
+    const goOffline = () => setOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, []);
+
+  // A submission that could not be stored is tried again by itself: when the
+  // connection returns and every 10 seconds, until the server has it.
+  useEffect(() => {
+    if (storeStatus !== 'failed') return;
+    const retry = () => void storeSubmission();
+    window.addEventListener('online', retry);
+    const timer = window.setInterval(retry, 10000);
+    return () => {
+      window.removeEventListener('online', retry);
+      window.clearInterval(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeStatus]);
+
+  function finish(auto: boolean) {
+    // A manual and an automatic submit must never both go through.
+    if (finished.current) return;
     finished.current = true;
+    autoSubmitted.current = auto;
     clearAttempt(exam.id);
     setSubmitted(true);
+    void storeSubmission();
   }
+
+  // Log the start of a fresh attempt (not a resume after a refresh).
+  useEffect(() => {
+    if (!initial.resumed) void logExamStart(exam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the ref in step with the answers (declared before the timer effect).
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
 
   // Auto-save: runs on start and every time an answer or the current
   // question changes. (Declared before the timer effect on purpose, so an
@@ -52,6 +120,7 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
       answers,
       deadline: deadline.current,
       currentIndex,
+      attemptId: attemptId.current,
     });
     setSaveFailed(!ok);
     if (ok) setLastSaved(new Date());
@@ -70,7 +139,7 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
 
       // Automatically submit when the time limit is reached.
       if (remaining === 0) {
-        finish();
+        finish(true);
       }
     };
 
@@ -82,6 +151,7 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
 
   const answeredCount = Object.keys(answers).length;
   const total = exam.questions.length;
+  const unansweredCount = total - answeredCount;
   const question = exam.questions[currentIndex];
 
   function selectAnswer(questionId: number, option: string) {
@@ -92,19 +162,18 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
     setCurrentIndex(Math.min(Math.max(index, 0), total - 1));
   }
 
+  // Jump to a question from the review screen and go back to answering.
+  function goToFromReview(index: number) {
+    goTo(index);
+    setReviewing(false);
+  }
+
+  // Called from the review screen, which has already shown any unanswered
+  // questions, so no second confirmation is needed here.
   function submitExam() {
-    const unanswered = total - answeredCount;
-    if (
-      unanswered > 0 &&
-      !window.confirm(
-        `You have ${unanswered} unanswered question${unanswered > 1 ? 's' : ''}. Submit anyway?`
-      )
-    ) {
-      return;
-    }
     // Freeze the displayed time at the moment of submission.
     setTimeLeft(Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000)));
-    finish();
+    finish(false);
   }
 
   function cancelExam() {
@@ -148,15 +217,74 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
           </p>
           <p>
             {timeLeft === 0
-              ? 'Time is up. Your examination has been submitted.'
-              : 'Your responses have been submitted in this session.'}
+              ? 'Time is up. Your examination has been submitted automatically.'
+              : 'Your responses have been submitted.'}
           </p>
+          <p>
+            {storeStatus === 'saving' && 'Saving your submission...'}
+            {storeStatus === 'saved' && 'Your submission has been stored.'}
+            {storeStatus === 'failed' &&
+              'Your answers are saved on this device but could not reach the server. We will keep trying automatically; you can also retry now.'}
+          </p>
+          {storeStatus === 'failed' && (
+            <button className="secondary" onClick={() => void storeSubmission()}>
+              Retry
+            </button>
+          )}
           <button className="submit-button" onClick={onExit}>
             Back to examinations
           </button>
         </div>
+      ) : reviewing ? (
+        <div className="review" aria-label="Review answers">
+          <h3>Review your answers</h3>
+          <p>
+            Answered {answeredCount} of {total} questions
+          </p>
+
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {exam.questions.map((item, index) => {
+              const answered = answers[item.id] !== undefined;
+              return (
+                <li key={item.id} style={{ marginBottom: 8 }}>
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() => goToFromReview(index)}
+                  >
+                    Question {index + 1}
+                  </button>{' '}
+                  {answered ? 'Answered' : 'Not answered'}
+                </li>
+              );
+            })}
+          </ul>
+
+          {unansweredCount > 0 && (
+            <p role="alert">
+              You have {unansweredCount} unanswered question
+              {unansweredCount > 1 ? 's' : ''}.
+            </p>
+          )}
+
+          <div className="submission">
+            <button className="submit-button" onClick={submitExam}>
+              Confirm and submit
+            </button>
+            <button className="secondary" onClick={() => setReviewing(false)}>
+              Back to questions
+            </button>
+          </div>
+        </div>
       ) : (
         <>
+          {!online && (
+            <div className="notice notice-offline" role="alert">
+              You are offline. Your answers are saved on this device and will
+              be sent when the connection returns.
+            </div>
+          )}
+
           {initial.resumed && (
             <div className="notice" role="status">
               Your saved progress has been restored.
@@ -238,8 +366,8 @@ export default function ExamAttempt({ exam, onExit }: ExamAttemptProps) {
               Answered {answeredCount} of {total} questions
             </p>
 
-            <button className="submit-button" onClick={submitExam}>
-              Submit examination
+            <button className="submit-button" onClick={() => setReviewing(true)}>
+              Review and submit
             </button>
 
             <button className="secondary" onClick={cancelExam}>

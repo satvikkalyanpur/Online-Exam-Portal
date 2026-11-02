@@ -11,6 +11,8 @@ export interface Exam {
   subject: string;
   /** Time limit in minutes */
   duration: number;
+  /** ISO date-time when the exam opens. If omitted, the exam is always open. */
+  startAt?: string;
   questions: Question[];
 }
 

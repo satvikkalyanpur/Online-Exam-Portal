@@ -307,3 +307,172 @@ export async function updateQuestion(req: Request, res: Response) {
   }
 }
 ;
+export async function getStudentResults(
+  req: Request,
+  res: Response,
+) {
+  try {
+    const studentId = req.user?.id;
+
+    if (!studentId) {
+      return res.status(401).json({
+        error: 'Authentication required.',
+      });
+    }
+
+    const results = await prisma.result.findMany({
+      where: {
+        studentId,
+        evaluated: true,
+      },
+      orderBy: { evaluatedAt: 'desc' },
+      select: {
+        id: true,
+        examId: true,
+        score: true,
+        evaluated: true,
+        evaluatedAt: true,
+        exam: {
+          select: {
+            id: true,
+            title: true,
+            totalMarks: true,
+          },
+        },
+      },
+    });
+
+    return res.json(results);
+  } catch (error) {
+    console.error('Failed to fetch student results:', error);
+    return res.status(500).json({
+      error: 'Unable to fetch examination results.',
+    });
+  }
+}
+
+export async function getPerformanceReports(
+  _req: Request,
+  res: Response
+) {
+  try {
+    const results = await prisma.examResult.findMany({
+      include: {
+        student: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        exam: {
+          select: {
+            id: true,
+            title: true,
+            totalMarks: true,
+          },
+        },
+      },
+      orderBy: {
+        submittedAt: 'desc',
+      },
+    });
+
+    const reports = results.map((result) => ({
+      id: result.id,
+      student: result.student,
+      exam: result.exam,
+      score: result.score,
+      totalMarks: result.totalMarks,
+      percentage:
+        result.totalMarks > 0
+          ? Number(
+              ((result.score / result.totalMarks) * 100).toFixed(2)
+            )
+          : 0,
+      submittedAt: result.submittedAt,
+    }));
+
+    return res.json(reports);
+  } catch {
+    return res.status(500).json({
+      message: 'Unable to generate performance reports',
+    });
+  }
+}
+
+
+export async function getExaminationStatistics(
+  _req: Request,
+  res: Response,
+) {
+  try {
+    const results = await prisma.examResult.findMany({
+      include: {
+        exam: {
+          select: {
+            id: true,
+            title: true,
+            totalMarks: true,
+          },
+        },
+      },
+    });
+
+    const statistics = new Map<
+      string,
+      {
+        exam: { id: string; title: string; totalMarks: number };
+        totalAttempts: number;
+        totalScore: number;
+        highestScore: number;
+        lowestScore: number;
+      }
+    >();
+
+    for (const result of results) {
+      const current = statistics.get(result.exam.id) ?? {
+        exam: result.exam,
+        totalAttempts: 0,
+        totalScore: 0,
+        highestScore: result.score,
+        lowestScore: result.score,
+      };
+
+      current.totalAttempts += 1;
+      current.totalScore += result.score;
+      current.highestScore = Math.max(current.highestScore, result.score);
+      current.lowestScore = Math.min(current.lowestScore, result.score);
+
+      statistics.set(result.exam.id, current);
+    }
+
+    const reports = Array.from(statistics.values()).map((item) => ({
+      ...item,
+      averageScore: Number(
+        (item.totalScore / item.totalAttempts).toFixed(2),
+      ),
+      averagePercentage:
+        item.exam.totalMarks > 0
+          ? Number(
+              (
+                (item.totalScore / item.totalAttempts /
+                  item.exam.totalMarks) *
+                100
+              ).toFixed(2),
+            )
+          : 0,
+    }));
+
+    return res.json({
+      totalExams: reports.length,
+      totalAttempts: results.length,
+      examinations: reports,
+    });
+  } catch (error) {
+    console.error('Failed to generate examination statistics:', error);
+    return res.status(500).json({
+      error: 'Unable to generate examination statistics.',
+    });
+  }
+}

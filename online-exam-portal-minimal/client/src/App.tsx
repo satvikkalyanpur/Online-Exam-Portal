@@ -33,6 +33,8 @@
 
 
 import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { flushPendingSubmissions } from './api/submissions';
 import { examDefinitions } from './data/exams';
 import { initialQuestionBank } from './data/questionBank';
 import type { BankQuestion } from './data/questionBank';
@@ -66,6 +68,16 @@ export default function App() {
     [bank]
   );
  
+
+  // Send any submission that could not be stored earlier, for example when
+  // the connection dropped and the page was closed before it came back.
+  useEffect(() => {
+    void flushPendingSubmissions();
+    const flush = () => void flushPendingSubmissions();
+    window.addEventListener('online', flush);
+    return () => window.removeEventListener('online', flush);
+  }, []);
+
   const attemptingExam = view === 'student' && selectedExam !== null;
  
   return (
@@ -125,3 +137,4 @@ export default function App() {
   );
 }
 
+}
