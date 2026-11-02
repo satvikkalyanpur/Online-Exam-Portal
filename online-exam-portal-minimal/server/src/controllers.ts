@@ -273,7 +273,7 @@ export async function updateQuestion(req: Request, res: Response) {
     }
 
     const existing = await prisma.question.findUnique({
-      where: { id: req.params.id },
+      where: { id: String(req.params.id) },
     });
 
     if (!existing) {
@@ -281,7 +281,7 @@ export async function updateQuestion(req: Request, res: Response) {
     }
 
     const question = await prisma.question.update({
-      where: { id: req.params.id },
+      where: { id:  String(req.params.id) },
       data: {
         text: text.trim(),
         optionA: optionA.trim(),
@@ -306,6 +306,7 @@ export async function updateQuestion(req: Request, res: Response) {
     return res.status(500).json({ error: 'Unable to update question.' });
   }
 }
+;
 export async function getStudentResults(
   req: Request,
   res: Response,
