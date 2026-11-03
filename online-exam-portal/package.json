@@ -1,0 +1,12 @@
+{
+  "name": "online-exam-portal",
+  "private": true,
+  "description": "Run these from this folder. See HowToRun.md in the repository root.",
+  "scripts": {
+    "setup": "npm install --prefix server && npm install --prefix client && npm run db:setup --prefix server",
+    "start": "npm run build --prefix client && npm start --prefix server",
+    "test": "npm test --prefix server",
+    "check": "npm run check --prefix server && npm run build --prefix client",
+    "reset-db": "npm run db:reset --prefix server"
+  }
+}

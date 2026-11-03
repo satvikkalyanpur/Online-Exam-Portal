@@ -1,0 +1,164 @@
+// Online Exam Portal data model.
+//
+// Prisma commands are run from the `server` folder (see server/prisma.config.ts).
+// `prisma generate` runs automatically on `npm install` and writes the client
+// to server/src/generated.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../server/src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+}
+
+enum ActivityAction {
+  LOGIN
+  LOGIN_FAILED
+  LOGOUT
+  ACCESS_DENIED
+  EXAM_CREATED
+  EXAM_UPDATED
+  EXAM_PUBLISHED
+  EXAM_UNPUBLISHED
+  QUESTION_ADDED
+  QUESTION_UPDATED
+  QUESTION_DELETED
+  EXAM_STARTED
+  EXAM_SUBMITTED
+  BACKUP_DOWNLOADED
+  BACKUP_RESTORED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(STUDENT)
+  createdAt    DateTime @default(now())
+
+  examsCreated Exam[]        @relation("ExamCreator")
+  attempts     Attempt[]
+  activity     ActivityLog[]
+}
+
+// Created by an administrator. Students see it once it is PUBLISHED and can
+// start it between startAt and endAt.
+model Exam {
+  id              String     @id @default(cuid())
+  title           String
+  subject         String
+  description     String?    @db.Text
+  status          ExamStatus @default(DRAFT)
+  startAt         DateTime
+  endAt           DateTime
+  durationMinutes Int
+  totalMarks      Int
+  createdAt       DateTime   @default(now())
+  createdById     String?
+
+  createdBy User?          @relation("ExamCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  questions ExamQuestion[]
+  attempts  Attempt[]
+}
+
+// The question bank. A question can be used in several exams.
+model Question {
+  id            String   @id @default(cuid())
+  text          String   @db.Text
+  optionA       String   @db.VarChar(1000)
+  optionB       String   @db.VarChar(1000)
+  optionC       String   @db.VarChar(1000)
+  optionD       String   @db.VarChar(1000)
+  correctOption String   @db.Char(1)
+  marks         Int      @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  examLinks ExamQuestion[]
+  answers   AttemptAnswer[]
+}
+
+model ExamQuestion {
+  questionId String
+  examId     String
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  exam     Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@id([questionId, examId])
+  @@index([examId])
+}
+
+// One attempt per student per exam. The score is filled in when the attempt
+// is submitted, either by the student or automatically when time runs out.
+model Attempt {
+  id            String        @id @default(cuid())
+  examId        String
+  studentId     String
+  status        AttemptStatus @default(IN_PROGRESS)
+  startedAt     DateTime      @default(now())
+  expiresAt     DateTime
+  submittedAt   DateTime?
+  autoSubmitted Boolean       @default(false)
+  score         Int?
+  maxScore      Int?
+
+  exam    Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student User            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  answers AttemptAnswer[]
+
+  @@unique([examId, studentId])
+  @@index([studentId])
+}
+
+// The student's latest answer to one question. When the attempt is graded a
+// row is added for every unanswered question too (selectedOption = null), so
+// the stored result always shows exactly what was marked.
+model AttemptAnswer {
+  attemptId      String
+  questionId     String
+  selectedOption String?  @db.Char(1)
+  isCorrect      Boolean?
+  savedAt        DateTime @updatedAt
+
+  attempt  Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([attemptId, questionId])
+  @@index([questionId])
+}
+
+model ActivityLog {
+  id        String         @id @default(cuid())
+  userId    String?
+  action    ActivityAction
+  details   String         @db.VarChar(500)
+  createdAt DateTime       @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([action])
+}
